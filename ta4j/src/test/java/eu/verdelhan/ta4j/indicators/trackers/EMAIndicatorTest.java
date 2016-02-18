@@ -55,16 +55,16 @@ public class EMAIndicatorTest {
         assertEquals(ema.getValue(0), closePrice.getValue(0));
         
         assertDecimalEquals(ema.getValue(9), 22.254);
-        assertDecimalEquals(ema.getValue(10), 22.2317);
-        assertDecimalEquals(ema.getValue(11), 22.2572);
-        assertDecimalEquals(ema.getValue(12), 22.2797);
-        assertDecimalEquals(ema.getValue(13), 22.3399);
-        assertDecimalEquals(ema.getValue(14), 22.5248);
-        assertDecimalEquals(ema.getValue(15), 22.802);
-        assertDecimalEquals(ema.getValue(16), 22.9726);
-        assertDecimalEquals(ema.getValue(17), 23.1286);
-        assertDecimalEquals(ema.getValue(18), 23.2772);
-        assertDecimalEquals(ema.getValue(19), 23.3422);
+        assertDecimalEquals(ema.getValue(10), 22.2358);
+        assertDecimalEquals(ema.getValue(11), 22.2643);
+        assertDecimalEquals(ema.getValue(12), 22.2856);
+        assertDecimalEquals(ema.getValue(13), 22.3448);
+        assertDecimalEquals(ema.getValue(14), 22.5286);
+        assertDecimalEquals(ema.getValue(15), 22.8056);
+        assertDecimalEquals(ema.getValue(16), 22.9778);
+        assertDecimalEquals(ema.getValue(17), 23.1332);
+        assertDecimalEquals(ema.getValue(18), 23.2820);
+        assertDecimalEquals(ema.getValue(19), 23.3460);
 
     }
 }
