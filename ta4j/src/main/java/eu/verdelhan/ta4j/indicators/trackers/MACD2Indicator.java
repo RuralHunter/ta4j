@@ -33,7 +33,7 @@ import eu.verdelhan.ta4j.indicators.simple.*;
  */
 public class MACD2Indicator extends CachedIndicator<Decimal> {
     
-    private final EMAIndicator dea;
+    private final EMA2Indicator dea;
     
     private final DifferenceIndicator dif;
 
@@ -42,10 +42,10 @@ public class MACD2Indicator extends CachedIndicator<Decimal> {
         if (shortTimeFrame > longTimeFrame) {
             throw new IllegalArgumentException("Long term period count must be greater than short term period count");
         }
-        EMAIndicator shortTermEma = new EMAIndicator(indicator, shortTimeFrame);
-        EMAIndicator longTermEma = new EMAIndicator(indicator, longTimeFrame);
+        EMA2Indicator shortTermEma = new EMA2Indicator(indicator, shortTimeFrame);
+        EMA2Indicator longTermEma = new EMA2Indicator(indicator, longTimeFrame);
         dif = new DifferenceIndicator(shortTermEma, longTermEma);
-        dea = new EMAIndicator(dif, middleTimeFrame);
+        dea = new EMA2Indicator(dif, middleTimeFrame);
     }
 
     @Override
