@@ -22,6 +22,7 @@
  */
 package eu.verdelhan.ta4j;
 
+import eu.verdelhan.ta4j.trading.rules.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,6 +93,22 @@ public class Strategy {
         }
         return false;
     }
+       
+    /**
+     * @param index the tick index
+     * @param tradingRecord the potentially needed trading history
+     * @return the result of expected operation type
+     */
+    public OperationType checkOperationType(int index, TradingRecord tradingRecord) {
+        Trade trade = tradingRecord.getCurrentTrade();
+        if(trade.isClosed())
+            return OperationType.NA;
+        if (trade.isOpened()&&shouldExit(index, tradingRecord)) 
+            return OperationType.EXIT;
+        else if(shouldEnter(index, tradingRecord))
+            return OperationType.ENTER;
+        return OperationType.NA;
+    }
 
     /**
      * @param index the tick index
@@ -109,6 +126,11 @@ public class Strategy {
     public boolean shouldEnter(int index, TradingRecord tradingRecord) {
         if (isUnstableAt(index)) {
             return false;
+        }
+        if(tradingRecord!=null) {
+            Trade trade = tradingRecord.getCurrentTrade();
+            if(trade.isOpened()&&!(entryRule instanceof ReEnterableRule))
+                return false;
         }
         final boolean enter = entryRule.isSatisfied(index, tradingRecord);
         traceShouldEnter(index, enter);

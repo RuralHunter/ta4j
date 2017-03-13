@@ -414,9 +414,9 @@ public class TimeSeries {
         TradingRecord tradingRecord = new TradingRecord(orderType);
         for (int i = beginIndex; i <= endIndex; i++) {
             // For each tick in the sub-series...       
-            if (strategy.shouldOperate(i, tradingRecord)) {
-                tradingRecord.operate(i, ticks.get(i).getClosePrice(), amount);
-            }
+            OperationType ot=strategy.checkOperationType(i, tradingRecord);
+            if(ot!=OperationType.NA)
+                tradingRecord.operate(i, ticks.get(i).getClosePrice(), amount, ot);
         }
 
         if (!tradingRecord.isClosed()) {

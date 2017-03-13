@@ -23,8 +23,7 @@
 package eu.verdelhan.ta4j;
 
 import eu.verdelhan.ta4j.Order.OrderType;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * A history/record of a trading session.
@@ -55,6 +54,9 @@ public class TradingRecord {
     
     /** The recorded trades */
     private List<Trade> trades = new ArrayList<Trade>();
+    
+    /** The open trades */
+    private final List<Trade> openTrades = new ArrayList<Trade>();
 
     /** The entry type (BUY or SELL) in the trading session */
     private OrderType startingType;
@@ -99,6 +101,7 @@ public class TradingRecord {
             }
             Order newOrder = currentTrade.operate(o.getIndex(), o.getPrice(), o.getAmount());
             recordOrder(newOrder, newOrderWillBeAnEntry);
+            recordTrade(currentTrade);
         }
     }
     
@@ -131,6 +134,45 @@ public class TradingRecord {
         boolean newOrderWillBeAnEntry = currentTrade.isNew();
         Order newOrder = currentTrade.operate(index, price, amount);
         recordOrder(newOrder, newOrderWillBeAnEntry);
+        recordTrade(currentTrade);
+    }
+    
+    /**
+     * Operates an order in the trading record.
+     * @param index the index to operate the order
+     * @param price the price of the order
+     * @param amount the amount to be ordered
+     * @param ot the operation type
+     */
+    public final void operate(int index, Decimal price, Decimal amount,OperationType ot) {
+        if (currentTrade.isClosed()) {
+            // Current trade closed, should not occur
+            throw new IllegalStateException("Current trade should not be closed");
+        }
+        if(ot==OperationType.NA)
+            return;
+        Order newOrder;
+        if(currentTrade.isOpened()) {
+            if(ot==OperationType.ENTER) {
+                currentTrade = new Trade(startingType);
+                newOrder = currentTrade.operate(index, price, amount);
+                recordOrder(newOrder, true);
+                recordTrade(currentTrade);
+            }
+            else {//exit
+                for(Trade t:openTrades) {//check all open orders
+                    Order order=t.operate(index, price, amount);
+                    recordOrder(order, false);
+                    recordTrade(t);
+                }
+                openTrades.clear();
+            }
+        }
+        else {//new trade
+            newOrder = currentTrade.operate(index, price, amount);
+            recordOrder(newOrder, true);
+            recordTrade(currentTrade);
+        }
     }
     
     /**
@@ -281,11 +323,20 @@ public class TradingRecord {
             // Storing the new order in sell orders list
             sellOrders.add(order);
         }
-
-        // Storing the trade if closed
-        if (currentTrade.isClosed()) {
-            trades.add(currentTrade);
-            currentTrade = new Trade(startingType);
+    }
+    
+    private void recordTrade(Trade t) {
+        if (t.isClosed()) {
+            // Storing the trade if closed
+            trades.add(t);
+            if(t==currentTrade)
+                currentTrade = new Trade(startingType);
         }
+        else
+            openTrades.add(t);
+    }
+    
+    public List<Trade> getOpenTrades() {
+        return openTrades;
     }
 }
