@@ -116,7 +116,7 @@ public class TradingRecord {
      * @param index the index to operate the order
      */
     public final void operate(int index) {
-        operate(index, Decimal.NaN, Decimal.NaN);
+        TradingRecord.this.operate(index, Decimal.NaN, Decimal.NaN);
     }
     
     /**
@@ -153,7 +153,7 @@ public class TradingRecord {
      */
     public final boolean enter(int index, Decimal price, Decimal amount) {
         if (currentTrade.isNew()) {
-            operate(index, price, amount);
+            TradingRecord.this.operate(index, price, amount);
             return true;
         }
         return false;
@@ -177,7 +177,7 @@ public class TradingRecord {
      */
     public final boolean exit(int index, Decimal price, Decimal amount) {
         if (currentTrade.isOpened()) {
-            operate(index, price, amount);
+            TradingRecord.this.operate(index, price, amount);
             return true;
         }
         return false;
@@ -315,7 +315,7 @@ public class TradingRecord {
         return openTrades;
     }
     
-    public void operator(List<Order> orders) {
+    public void operate(List<Order> orders) {
         for(Order order:orders) {
             if(currentTrade.isOpened()) {
                 if(order.getType()==startingType) {
@@ -325,11 +325,15 @@ public class TradingRecord {
                     recordTrade(currentTrade);
                 }
                 else {//exit
-                    for(Trade t:openTrades) {//check all open orders
+                    Iterator<Trade> iterator = openTrades.iterator();
+                    while(iterator.hasNext()) {//check all open orders
+                        Trade t=iterator.next();
                         if(t.getEntry().getAmount().equals(order.getAmount())) {
                             t.operate(order);
                             recordOrderOnly(order, false);
                             recordTrade(t);
+                            iterator.remove();
+                            break;
                         }
                     }
                 }

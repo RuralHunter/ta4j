@@ -449,7 +449,7 @@ public class TimeSeries {
             // For each tick in the sub-series... 
             List<Order> orders=policy.shouldOrder(i, tradingRecord);
             if(!orders.isEmpty())
-                tradingRecord.operator(orders);
+                tradingRecord.operate(orders);
         }
 
         if (!tradingRecord.isClosed()) {

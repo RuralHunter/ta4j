@@ -22,6 +22,7 @@
  */
 package eu.verdelhan.ta4j;
 
+import java.util.*;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -128,5 +129,36 @@ public class TradingRecordTest {
         assertNull(emptyRecord.getLastExit());
         assertEquals(Order.sellAt(3), openedRecord.getLastExit());
         assertEquals(Order.sellAt(8), closedRecord.getLastExit());
+    }
+    
+    @Test
+    public void operateOrders() {
+        TradingRecord record = new TradingRecord();
+        List<Order> orders=new ArrayList<Order>();
+        int i=1;
+        orders.add(new Order(i++, record.getStartingType(), Decimal.valueOf(10),Decimal.HUNDRED));
+        record.operate(orders);
+        assertTrue(record.getCurrentTrade().isOpened());
+        assertEquals(1, record.getOpenTrades().size());
+        
+        orders.clear();        
+        orders.add(new Order(i++, record.getStartingType().complementType(), Decimal.valueOf(10),Decimal.HUNDRED));
+        record.operate(orders);
+        assertFalse(record.getCurrentTrade().isOpened());
+        assertEquals(0, record.getOpenTrades().size());
+        
+        orders.clear();        
+        orders.add(new Order(i++, record.getStartingType(), Decimal.valueOf(10),Decimal.HUNDRED));        
+        orders.add(new Order(i++, record.getStartingType(), Decimal.valueOf(10),Decimal.HUNDRED)); 
+        record.operate(orders);
+        assertTrue(record.getCurrentTrade().isOpened());
+        assertEquals(2, record.getOpenTrades().size());
+        
+        orders.clear();        
+        orders.add(new Order(i++, record.getStartingType().complementType(), Decimal.valueOf(10),Decimal.HUNDRED));        
+        orders.add(new Order(i++, record.getStartingType().complementType(), Decimal.valueOf(10),Decimal.HUNDRED));
+        record.operate(orders);
+        assertFalse(record.getCurrentTrade().isOpened());
+        assertEquals(0, record.getOpenTrades().size());
     }
 }
