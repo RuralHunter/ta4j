@@ -133,6 +133,13 @@ public class Trade {
         }
         return order;
     }
+    
+    public void operate(Order order) {
+        if(isNew())
+            entry=order;
+        else if(isOpened())
+            exit=order;
+    }
 
     /**
      * @return true if the trade is closed, false otherwise

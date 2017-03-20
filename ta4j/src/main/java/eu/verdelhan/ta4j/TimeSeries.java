@@ -414,9 +414,9 @@ public class TimeSeries {
         TradingRecord tradingRecord = new TradingRecord(orderType);
         for (int i = beginIndex; i <= endIndex; i++) {
             // For each tick in the sub-series...       
-            OperationType ot=strategy.checkOperationType(i, tradingRecord);
-            if(ot!=OperationType.NA)
-                tradingRecord.operate(i, ticks.get(i).getClosePrice(), amount, ot);
+            if (strategy.shouldOperate(i, tradingRecord)) {
+                tradingRecord.operate(i, ticks.get(i).getClosePrice(), amount);
+            }
         }
 
         if (!tradingRecord.isClosed()) {
@@ -430,6 +430,30 @@ public class TimeSeries {
                     break;
                 }
             }
+        }
+        return tradingRecord;
+    }
+
+    /**
+     * Runs the strategy over the series.
+     * <p>
+     * @param policy the trading policy
+     * @param orderType the {@link OrderType} used to open the trades
+     * @return the trading record coming from the run
+     */
+    public TradingRecord runPolicy(Policy policy, OrderType orderType) {
+
+        log.trace("Running policy: {} (starting with {})", policy, orderType);
+        TradingRecord tradingRecord = new TradingRecord(orderType);
+        for (int i = beginIndex; i <= endIndex; i++) {
+            // For each tick in the sub-series... 
+            List<Order> orders=policy.shouldOrder(i, tradingRecord);
+            if(!orders.isEmpty())
+                tradingRecord.operator(orders);
+        }
+
+        if (!tradingRecord.isClosed()) {
+            tradingRecord.forceClose(endIndex, ticks.get(endIndex).getClosePrice());
         }
         return tradingRecord;
     }

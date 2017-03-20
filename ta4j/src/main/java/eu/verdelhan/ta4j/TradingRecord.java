@@ -101,7 +101,6 @@ public class TradingRecord {
             }
             Order newOrder = currentTrade.operate(o.getIndex(), o.getPrice(), o.getAmount());
             recordOrder(newOrder, newOrderWillBeAnEntry);
-            recordTrade(currentTrade);
         }
     }
     
@@ -134,45 +133,6 @@ public class TradingRecord {
         boolean newOrderWillBeAnEntry = currentTrade.isNew();
         Order newOrder = currentTrade.operate(index, price, amount);
         recordOrder(newOrder, newOrderWillBeAnEntry);
-        recordTrade(currentTrade);
-    }
-    
-    /**
-     * Operates an order in the trading record.
-     * @param index the index to operate the order
-     * @param price the price of the order
-     * @param amount the amount to be ordered
-     * @param ot the operation type
-     */
-    public final void operate(int index, Decimal price, Decimal amount,OperationType ot) {
-        if (currentTrade.isClosed()) {
-            // Current trade closed, should not occur
-            throw new IllegalStateException("Current trade should not be closed");
-        }
-        if(ot==OperationType.NA)
-            return;
-        Order newOrder;
-        if(currentTrade.isOpened()) {
-            if(ot==OperationType.ENTER) {
-                currentTrade = new Trade(startingType);
-                newOrder = currentTrade.operate(index, price, amount);
-                recordOrder(newOrder, true);
-                recordTrade(currentTrade);
-            }
-            else {//exit
-                for(Trade t:openTrades) {//check all open orders
-                    Order order=t.operate(index, price, amount);
-                    recordOrder(order, false);
-                    recordTrade(t);
-                }
-                openTrades.clear();
-            }
-        }
-        else {//new trade
-            newOrder = currentTrade.operate(index, price, amount);
-            recordOrder(newOrder, true);
-            recordTrade(currentTrade);
-        }
     }
     
     /**
@@ -303,6 +263,21 @@ public class TradingRecord {
      * @param isEntry true if the order is an entry, false otherwise (exit)
      */
     private void recordOrder(Order order, boolean isEntry) {
+        recordOrderOnly(order,isEntry);
+
+        // Storing the trade if closed
+        if (currentTrade.isClosed()) {
+            trades.add(currentTrade);
+            currentTrade = new Trade(startingType);
+        }
+    }
+
+    /**
+     * Records an order only and not touch the trade.
+     * @param order the order to be recorded
+     * @param isEntry true if the order is an entry, false otherwise (exit)
+     */
+    private void recordOrderOnly(Order order, boolean isEntry) {
         if (order == null) {
             throw new IllegalArgumentException("Order should not be null");
         }
@@ -338,5 +313,46 @@ public class TradingRecord {
     
     public List<Trade> getOpenTrades() {
         return openTrades;
+    }
+    
+    public void operator(List<Order> orders) {
+        for(Order order:orders) {
+            if(currentTrade.isOpened()) {
+                if(order.getType()==startingType) {
+                    currentTrade = new Trade(startingType);
+                    currentTrade.operate(order);
+                    recordOrderOnly(order, true);
+                    recordTrade(currentTrade);
+                }
+                else {//exit
+                    for(Trade t:openTrades) {//check all open orders
+                        if(t.getEntry().getAmount().equals(order.getAmount())) {
+                            t.operate(order);
+                            recordOrderOnly(order, false);
+                            recordTrade(t);
+                        }
+                    }
+                }
+            }
+            else {//new trade
+                currentTrade.operate(order);
+                recordOrderOnly(order, true);
+                recordTrade(currentTrade);
+            }
+        }
+    }
+    
+    public void forceClose(int index, Decimal price) {
+        if(!openTrades.isEmpty()) {
+            for(Trade t:openTrades) {//check all open orders
+                Order newOrder = t.operate(index, price, t.getEntry().getAmount());
+                recordOrderOnly(newOrder, false);
+                recordTrade(currentTrade);
+            }
+        }
+    }
+    
+    public OrderType getStartingType() {
+        return startingType;
     }
 }

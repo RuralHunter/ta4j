@@ -92,7 +92,7 @@ public class Order {
      * @param price the price for the order
      * @param amount the amount to be (or that was) ordered
      */
-    protected Order(int index, OrderType type, Decimal price, Decimal amount) {
+    public Order(int index, OrderType type, Decimal price, Decimal amount) {
         this(index, type);
         this.price = price;
         this.amount = amount;
