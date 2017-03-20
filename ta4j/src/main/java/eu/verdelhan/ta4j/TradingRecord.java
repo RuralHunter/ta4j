@@ -116,7 +116,7 @@ public class TradingRecord {
      * @param index the index to operate the order
      */
     public final void operate(int index) {
-        TradingRecord.this.operate(index, Decimal.NaN, Decimal.NaN);
+        operate(index, Decimal.NaN, Decimal.NaN);
     }
     
     /**
@@ -153,7 +153,7 @@ public class TradingRecord {
      */
     public final boolean enter(int index, Decimal price, Decimal amount) {
         if (currentTrade.isNew()) {
-            TradingRecord.this.operate(index, price, amount);
+            operate(index, price, amount);
             return true;
         }
         return false;
@@ -177,7 +177,7 @@ public class TradingRecord {
      */
     public final boolean exit(int index, Decimal price, Decimal amount) {
         if (currentTrade.isOpened()) {
-            TradingRecord.this.operate(index, price, amount);
+            operate(index, price, amount);
             return true;
         }
         return false;
@@ -307,8 +307,6 @@ public class TradingRecord {
             if(t==currentTrade)
                 currentTrade = new Trade(startingType);
         }
-        else
-            openTrades.add(t);
     }
     
     public List<Trade> getOpenTrades() {
@@ -318,11 +316,11 @@ public class TradingRecord {
     public void operate(List<Order> orders) {
         for(Order order:orders) {
             if(currentTrade.isOpened()) {
-                if(order.getType()==startingType) {
+                if(order.getType()==startingType) {//re-enter
                     currentTrade = new Trade(startingType);
                     currentTrade.operate(order);
                     recordOrderOnly(order, true);
-                    recordTrade(currentTrade);
+                    openTrades.add(currentTrade);
                 }
                 else {//exit
                     Iterator<Trade> iterator = openTrades.iterator();
@@ -341,7 +339,7 @@ public class TradingRecord {
             else {//new trade
                 currentTrade.operate(order);
                 recordOrderOnly(order, true);
-                recordTrade(currentTrade);
+                openTrades.add(currentTrade);
             }
         }
     }
@@ -351,8 +349,9 @@ public class TradingRecord {
             for(Trade t:openTrades) {//check all open orders
                 Order newOrder = t.operate(index, price, t.getEntry().getAmount());
                 recordOrderOnly(newOrder, false);
-                recordTrade(currentTrade);
+                recordTrade(t);
             }
+            openTrades.clear();
         }
     }
     

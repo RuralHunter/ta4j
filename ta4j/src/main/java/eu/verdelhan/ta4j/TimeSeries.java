@@ -435,7 +435,7 @@ public class TimeSeries {
     }
 
     /**
-     * Runs the strategy over the series.
+     * Runs the policy over the series.
      * <p>
      * @param policy the trading policy
      * @param orderType the {@link OrderType} used to open the trades
