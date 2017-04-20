@@ -304,8 +304,12 @@ public class TradingRecord {
         if (t.isClosed()) {
             // Storing the trade if closed
             trades.add(t);
-            if(t==currentTrade)
-                currentTrade = new Trade(startingType);
+            if(t==currentTrade) {
+                if(openTrades.isEmpty())
+                    currentTrade = new Trade(startingType);
+                else
+                    currentTrade = openTrades.get(openTrades.size()-1);
+            }
         }
     }
     
@@ -323,16 +327,19 @@ public class TradingRecord {
                     openTrades.add(currentTrade);
                 }
                 else {//exit
-                    Iterator<Trade> iterator = openTrades.iterator();
-                    while(iterator.hasNext()) {//check all open orders
-                        Trade t=iterator.next();
+                    int rmIndex=-1;
+                    for(int i=openTrades.size()-1;i>=0;i--) {
+                        Trade t=openTrades.get(i);
                         if(t.getEntry().getAmount().equals(order.getAmount())) {
-                            t.operate(order);
-                            recordOrderOnly(order, false);
-                            recordTrade(t);
-                            iterator.remove();
+                            rmIndex=i;
                             break;
                         }
+                    }
+                    if(rmIndex>=0) {
+                        Trade t=openTrades.remove(rmIndex);
+                        t.operate(order);
+                        recordOrderOnly(order, false);
+                        recordTrade(t);
                     }
                 }
             }
